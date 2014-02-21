@@ -1,0 +1,59 @@
+
+
+# SAGA
+
+Simulated Annealing / Genetic Algorithm.
+
+## Test Functions
+
+As an initial test function, we will use a multi-linear regression that is dependent on 8 different parameters. This function is taken from the [NIST website](http://www.itl.nist.gov/div898/strd/nls/data/LINKS/v-gauss3.shtml).
+
+```{r setUpQuery}
+betaValues <- c(9.8940368970E+01,
+                1.0945879335E-02,
+                1.0069553078E+02,
+                1.1163619459E+02,
+                2.3300500029E+01,
+                7.3705031418E+01,
+                1.4776164251E+02,
+                1.9668221230E+01)
+
+betaSD <- c(5.3005192833E-01,
+            1.2554058911E-04,
+            8.1256587317E-01,
+            3.5317859757E-01,
+            3.6584783023E-01,
+            1.2091239082E+00,
+            4.0488183351E-01,
+            3.7806634336E-01)
+
+fx <- function(x, beta){
+  beta[1] * exp(-1 * beta[2] * x) + 
+  beta[3] * exp(-1 * (x - beta[4])^2 / beta[5]^2) + 
+  beta[6] * exp(-1 * (x - beta[7])^2 / beta[8]^2)
+}
+
+x <- seq(1, 250, 1)
+y <- fx(x, betaValues)
+plot(x, y)
+```
+
+Our evaluation criteria is **how** different is a new set of `y` based on our candidate `beta` values.
+
+```{r energyFunction}
+# assumes that org and new are vectors of values
+energyFunc <- function(org, new){
+  nObs <- length(org)
+  return(sqrt(sum((org - new)^2) / nObs))
+}
+```
+
+
+And our values for each value of beta will be drawn uniformly from 
+
+Lets write a simple simulated annealing algorithm
+
+```{r sa}
+
+```
+
