@@ -68,16 +68,16 @@ energyFunc <- function(newBeta){
 And our values for each value of beta will be drawn uniformly from a distribution with a range of 0 to 200. The neighbor values will be based on the current values, but the standard deviation will be adjusted based on the current temperature and alpha.
 
 ```{r initPop}
-initPop <- runif(8, min=0, max=200)
-initPop[2] <- runif(1, min=0, max=200)
-neighborFunction <- function(currentPopulation, currentTemperature, alpha){
+neighborFunction <- function(currentPopulation, useSD, currentTemperature, alpha){
   # an alpha of 0 means temperature has no effect
   if (alpha == 0){
     scaleVariance <- 1
+    tmpSD <- useSD
   } else {
-    scaleVariance <- currentTemperature * alpha
+    scaleVariance <- currentTemperature * alpha / length(currentPopulation)
+    tmpSD <- useSD * scaleVariance
   }
-  newPopulation <- rnorm(length(currentPopulation), mean=currentPopulation, sd=scaleVariance)
+  newPopulation <- rnorm(length(currentPopulation), mean=currentPopulation, sd=tmpSD)
   newPopulation[newPopulation < 0] <- 0
   return(newPopulation)
 }
@@ -117,7 +117,7 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
   allEnergy <- double()
   
   while ((currTemp > 0) && (currTol > sameTolerance) && (iTry < nTry)){
-    newSolution <- neighborFunction(currSolution, currTemp, alpha)
+    newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
     newEnergy <- evalFunction(newSolution)
     
     deltaEnergy <- newEnergy - currEnergy
@@ -153,10 +153,10 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
     allSolutions[[nSol+1]] <- currSolution
     allEnergy <- c(allEnergy, currEnergy)
     
-    print(currEnergy)
+    print(c(iTry, currTemp, currEnergy))
     #print(currTol)
-    print(currTemp)
-    print(iTry)
+    #print(currTemp)
+    #print(iTry)
     
   }
   return(list(lastSolution=currSolution,
@@ -168,9 +168,14 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
 ```
 
 ```{r tryitOut}
-initPop <- runif(8, min=0, max=200)
-initPop[2] <- runif(1, min=0, max=1)
-outSA <- sa(initPop, energyFunc, neighborFunction, 300, 0.01, alpha=0.01, nTry=Inf)
+library(functional)
+initPop <- rnorm(8, mean=betaValues, sd=0.2*betaValues)
+initPop[(initPop < 0)] <- 0
+useSD <- 0.2 * betaValues
+
+tmpNeighbor <- Curry(neighborFunction, useSD=useSD)
+
+outSA <- sa(initPop, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.1, nTry=Inf)
 plot(outSA$allEnergy)
 plot(log10(outSA$allEnergy))
 
