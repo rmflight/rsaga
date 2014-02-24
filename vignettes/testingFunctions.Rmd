@@ -41,8 +41,8 @@ plot(x, y)
 Our evaluation criteria is **how** different is a new set of `y` based on our candidate `beta` values. Note that this energy function is specific to our current problem.
 
 ```{r energyFunction}
-energyFunc <- function(new){
-  betaValues <- c(9.8940368970E+01,
+energyFunc <- function(newBeta){
+  orgBeta <- c(9.8940368970E+01,
                 1.0945879335E-02,
                 1.0069553078E+02,
                 1.1163619459E+02,
@@ -56,7 +56,8 @@ energyFunc <- function(new){
     beta[6] * exp(-1 * (x - beta[7])^2 / beta[8]^2)
   }
   x <- seq(1, 250, 1)
-  org <- fx(x, betaValues)
+  org <- fx(x, orgBeta)
+  new <- fx(x, newBeta)
   
   nObs <- length(org)
   return(sqrt(sum((org - new)^2) / nObs))
