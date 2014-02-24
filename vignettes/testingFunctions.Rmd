@@ -60,7 +60,7 @@ energyFunc <- function(newBeta){
   new <- fx(x, newBeta)
   
   nObs <- length(org)
-  return(sqrt(sum((org - new)^2) / nObs))
+  return((sum((org - new)^2)))
 }
 ```
 
@@ -69,6 +69,7 @@ And our values for each value of beta will be drawn uniformly from a distributio
 
 ```{r initPop}
 initPop <- runif(8, min=0, max=200)
+initPop[2] <- runif(1, min=0, max=200)
 neighborFunction <- function(currentPopulation, currentTemperature, alpha){
   # an alpha of 0 means temperature has no effect
   if (alpha == 0){
@@ -76,7 +77,8 @@ neighborFunction <- function(currentPopulation, currentTemperature, alpha){
   } else {
     scaleVariance <- currentTemperature * alpha
   }
-  newPopulation <- rnorm(length(currentPopulation), mean=currentPopulation, sd=sqrt(scaleVariance))
+  newPopulation <- rnorm(length(currentPopulation), mean=currentPopulation, sd=scaleVariance)
+  newPopulation[newPopulation < 0] <- 0
   return(newPopulation)
 }
 ```
@@ -85,6 +87,95 @@ neighborFunction <- function(currentPopulation, currentTemperature, alpha){
 Lets write a simple simulated annealing algorithm.
 
 ```{r sa}
-sa <- function(initialSolution, evalFunction, )
+#' run simulated annealing
+#'
+#' @param initialSolution a starting solution
+#' @param evalFunction function to evaluate each iteration of the solution
+#' @param neighborFunction the function to create a new solution from the current one
+#' @param initialTemperature the starting temperature (default is 300)
+#' @param deltaTemperature how much to decrease the temperature at each step (default is 1)
+#' @param temperatureStep how many steps to go from \code{initialTemperature} to 0 (default is NA), overrides \code{deltaTemperature}
+#' @param alpha how much the current temperature affects the neighbor solution
+#' @param sameTolerance how similar two iterations have to be to stop
+sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperature=300, deltaTemperature=1, temperatureStep=NA, alpha=1, sameTolerance=0.00001, nTry=10000){
+  
+  if (!is.na(temperatureStep)){
+    deltaTemperature <- (initialTemperature - 0) / temperatureStep
+  }
+  
+  currSolution <- initialSolution
+  currEnergy <- evalFunction(initialSolution)
+  
+  bestSolution <- currSolution
+  bestEnergy <- currEnergy
+  
+  currTemp <- initialTemperature
+  currTol <- 1
+  iTry <- 1
+  
+  allSolutions <- list()
+  allEnergy <- double()
+  
+  while ((currTemp > 0) && (currTol > sameTolerance) && (iTry < nTry)){
+    newSolution <- neighborFunction(currSolution, currTemp, alpha)
+    newEnergy <- evalFunction(newSolution)
+    
+    deltaEnergy <- newEnergy - currEnergy
+    
+    if (deltaEnergy < 0){
+      currTol <- sum((currSolution - newSolution)^2)
+      #automatically accept if energy is better
+      currSolution <- newSolution
+      currEnergy <- newEnergy
+      
+    } else {
+      energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
+      #browser(expr=TRUE)
+      if (runif(1) < energyP){
+        currTol <- sum((currSolution - newSolution)^2)
+        currSolution <- newSolution
+        currEnergy <- newEnergy
+        
+      }
+    }
+    
+    if (currEnergy < bestEnergy){
+      bestSolution <- currSolution
+      bestEnergy <- currEnergy
+    }
+    
+    
+    currTemp <- currTemp - deltaTemperature
+    
+    iTry <- iTry + 1
+    
+    nSol <- length(allSolutions)
+    allSolutions[[nSol+1]] <- currSolution
+    allEnergy <- c(allEnergy, currEnergy)
+    
+    print(currEnergy)
+    #print(currTol)
+    print(currTemp)
+    print(iTry)
+    
+  }
+  return(list(lastSolution=currSolution,
+              lastEnergy=currEnergy,
+              allSolutions=allSolutions,
+              allEnergy=allEnergy,
+              nTry=iTry))
+}
+```
+
+```{r tryitOut}
+initPop <- runif(8, min=0, max=200)
+initPop[2] <- runif(1, min=0, max=1)
+outSA <- sa(initPop, energyFunc, neighborFunction, 300, 0.01, alpha=0.01, nTry=Inf)
+plot(outSA$allEnergy)
+plot(log10(outSA$allEnergy))
+
+y2 <- fx(x, outSA$lastSolution)
+plot(x,y)
+plot(x, y2)
 ```
 
