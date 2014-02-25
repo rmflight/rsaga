@@ -95,12 +95,16 @@ useSD <- 0.2 * betaValues
 
 tmpNeighbor <- Curry(neighborFunction, useSD=useSD)
 
-outSA <- sa(initPop, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.1, nTry=Inf)
+outSA <- sa(initPop, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.01, nTry=Inf)
 plot(outSA$allEnergy)
 plot(log10(outSA$allEnergy))
 
 y2 <- fx(x, outSA$lastSolution)
 plot(x,y)
 plot(x, y2)
+```
+
+```{r try50}
+library(snowfall)
 ```
 
