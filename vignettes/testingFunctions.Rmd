@@ -38,28 +38,96 @@ y <- fx(x, betaValues)
 plot(x, y)
 ```
 
-Our evaluation criteria is **how** different is a new set of `y` based on our candidate `beta` values.
+Our evaluation criteria is **how** different is a new set of `y` based on our candidate `beta` values. Note that this energy function is specific to our current problem.
 
 ```{r energyFunction}
-# assumes that org and new are vectors of values
-energyFunc <- function(org, new){
+energyFunc <- function(newBeta){
+  orgBeta <- c(9.8940368970E+01,
+                1.0945879335E-02,
+                1.0069553078E+02,
+                1.1163619459E+02,
+                2.3300500029E+01,
+                7.3705031418E+01,
+                1.4776164251E+02,
+                1.9668221230E+01)
+  fx <- function(x, beta){
+    beta[1] * exp(-1 * beta[2] * x) + 
+    beta[3] * exp(-1 * (x - beta[4])^2 / beta[5]^2) + 
+    beta[6] * exp(-1 * (x - beta[7])^2 / beta[8]^2)
+  }
+  x <- seq(1, 250, 1)
+  org <- fx(x, orgBeta)
+  new <- fx(x, newBeta)
+  
   nObs <- length(org)
-  return(sqrt(sum((org - new)^2) / nObs))
+  return((sum((org - new)^2)))
 }
 ```
 
 
-And our values for each value of beta will be drawn uniformly from a distribution with a range of 0 to 200.
+And our values for each value of beta will be drawn uniformly from a distribution with a range of 0 to 200. The neighbor values will be based on the current values, but the standard deviation will be adjusted based on the current temperature and alpha.
 
 ```{r initPop}
-initPop <- runif(8, min=0, max=200)
-neighborFunction <- function(population, )
+neighborFunction <- function(currentPopulation, useSD, currentTemperature, alpha){
+  # an alpha of 0 means temperature has no effect
+  if (alpha == 0){
+    scaleVariance <- 1
+    tmpSD <- useSD
+  } else {
+    scaleVariance <- currentTemperature * alpha / length(currentPopulation)
+    tmpSD <- useSD * scaleVariance
+  }
+  newPopulation <- rnorm(length(currentPopulation), mean=currentPopulation, sd=tmpSD)
+  newPopulation[newPopulation < 0] <- 0
+  return(newPopulation)
+}
 ```
 
 
-Lets write a simple simulated annealing algorithm
+Lets write a simple simulated annealing algorithm.
 
-```{r sa}
 
+```{r tryitOut}
+library(functional)
+initPop <- rnorm(8, mean=betaValues, sd=0.2*betaValues)
+initPop[(initPop < 0)] <- 0
+useSD <- 0.2 * betaValues
+
+tmpNeighbor <- Curry(neighborFunction, useSD=useSD)
+
+outSA <- sa(initPop, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.01, nTry=Inf)
+plot(outSA$allEnergy)
+plot(log10(outSA$allEnergy))
+
+y2 <- fx(x, outSA$lastSolution)
+plot(x,y)
+plot(x, y2)
 ```
 
+```{r try50}
+library(snowfall)
+sfInit(parallel=TRUE, cpus=2)
+
+sfLibrary(saga)
+sfExport("tmpNeighbor", "energyFunc")
+
+varyInitPop <- lapply(seq(1, 50), function(x){
+  rnorm(8, mean=betaValues, sd=0.2*betaValues)
+})
+
+outRes <- sfLapply(varyInitPop, function(x){
+  sa(x, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.01, nTry=Inf)
+})
+sfStop()
+save(outRes, file="inst/data/sa50Test.RData")
+```
+
+```{r checkSASolutions}
+bestEnergies <- sapply(outRes, function(x){ x$bestEnergy})
+plot(bestEnergies)
+bestSol <- lapply(outRes, function(x){x$bestSolution})
+bestSol <- do.call(rbind, bestSol)
+betaValues
+bestSol
+plot(log10(bestEnergies))
+```
