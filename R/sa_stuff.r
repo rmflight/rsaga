@@ -59,7 +59,7 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
       bestEnergy <- currEnergy
     }
     
-    allSolutions[iTry] <- currSolution
+    allSolutions[[iTry]] <- currSolution
     allEnergy[iTry] <- currEnergy
     
     currTemp <- currTemp - deltaTemperature
