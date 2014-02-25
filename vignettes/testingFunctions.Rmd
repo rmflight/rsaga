@@ -119,5 +119,15 @@ outRes <- sfLapply(varyInitPop, function(x){
   sa(x, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.01, nTry=Inf)
 })
 sfStop()
+save(outRes, file="inst/data/sa50Test.RData")
 ```
 
+```{r checkSASolutions}
+bestEnergies <- sapply(outRes, function(x){ x$bestEnergy})
+plot(bestEnergies)
+bestSol <- lapply(outRes, function(x){x$bestSolution})
+bestSol <- do.call(rbind, bestSol)
+betaValues
+bestSol
+plot(log10(bestEnergies))
+```
