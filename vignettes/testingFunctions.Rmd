@@ -4,6 +4,11 @@
 
 Simulated Annealing / Genetic Algorithm.
 
+```{r initLib}
+library(saga)
+```
+
+
 ## Test Functions
 
 As an initial test function, we will use a multi-linear regression that is dependent on 8 different parameters. This function is taken from the [NIST website](http://www.itl.nist.gov/div898/strd/nls/data/LINKS/v-gauss3.shtml).
@@ -106,7 +111,7 @@ plot(x, y2)
 
 ```{r try50}
 library(snowfall)
-sfInit(parallel=TRUE, cpus=2)
+sfInit(parallel=TRUE, cpus=4)
 
 sfLibrary(saga)
 sfExport("tmpNeighbor", "energyFunc")
