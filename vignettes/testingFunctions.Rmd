@@ -106,5 +106,18 @@ plot(x, y2)
 
 ```{r try50}
 library(snowfall)
+sfInit(parallel=TRUE, cpus=2)
+
+sfLibrary(saga)
+sfExport("tmpNeighbor", "energyFunc")
+
+varyInitPop <- lapply(seq(1, 50), function(x){
+  rnorm(8, mean=betaValues, sd=0.2*betaValues)
+})
+
+outRes <- sfLapply(varyInitPop, function(x){
+  sa(x, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.01, nTry=Inf)
+})
+sfStop()
 ```
 
