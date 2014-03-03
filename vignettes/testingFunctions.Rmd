@@ -281,8 +281,44 @@ simplexLogic <- function(inPoints, evalFunction){
 ## Check that Nelder-Mead works properly
 
 ```{r outSurface}
-xVals <- seq(-20, 20, 0.1)
-yVals <- seq(-20, 20, 0.1)
+queryVals <- seq(-5, 5, 0.1)
+nVal <- length(queryVals)
+xVals <- rep(queryVals, nVal)
+yVals <- rep(queryVals, each=nVal)
 zVals <- sapply(seq(1, length(xVals)), function(x){evalFunc(c(xVals[x], yVals[x]))})
+
+plotX <- queryVals
+plotY <- queryVals
+plotZ <- matrix(zVals, nrow=nVal, ncol=nVal, byrow=FALSE)
+
+contour(plotX, plotY, plotZ, nlevels=80)
+points(3, 2, col="red")
+rownames(plotZ) <- plotX
+colnames(plotZ) <- plotY
+plotZ["3", "2"]
+```
+
+```{r runSimplex}
+initPoint <- usePoints
+lapply(usePoints, function(x){
+  points(x[1], x[2], col="green")
+})
+
+iter <- 1
+
+outPoints <- list(20)
+
+while (iter < 20){
+  outPoints[[iter]] <- initPoint
+  initPoint <- simplexLogic(initPoint, evalFunc)
+  iter <- iter + 1
+}
+
+lapply(outPoints, function(plotPoint){
+  lapply(plotPoint, function(x){
+    points(x[1], x[2], col="green")
+  })
+})
+
 ```
 
