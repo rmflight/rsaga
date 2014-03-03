@@ -188,3 +188,37 @@ calcMid <- function(inPoints){
 midPoint <- calcMid(usePoints[1:2])
 ```
 
+Generate a new reflected, expanded, or contracted point (which is dependent on the coefficient passed in).
+
+```{r calcNew}
+calcNewPoint <- function(inMid, inWorst, useCoefficient=1){
+  newPoint <- inMid + useCoefficient * (inMid - inWorst)
+  names(newPoint) <- NULL
+  return(newPoint)
+}
+```
+
+Reflect our current simplex.
+
+```{r reflectSimplex}
+refPoint <- calcNewPoint(midPoint, usePoints[[3]])
+evalRef <- evalFunc(refPoint)
+evalRef
+evalPoints[1]
+```
+
+Our new point has a better energy than the best point. We should try expanding it!
+
+```{r expandSimplex}
+expPoint <- calcNewPoint(midPoint, usePoints[[3]], 2)
+evalExp <- evalFunc(expPoint)
+evalExp
+evalPoints[1]
+```
+
+OK, even better. Lets replace the previous best point.
+
+```{r replaceBest}
+usePoints[[1]] <- expPoint
+```
+
