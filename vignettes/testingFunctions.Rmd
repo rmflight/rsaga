@@ -154,9 +154,9 @@ evalFunc <- function(xyVals){
 ```
 
 ```{r initGuess}
-usePoints <- list(p1=c(0, 0),
-                   p2=c(1.2, 0),
-                   p3=c(0.0, 0.8))
+usePoints <- list(c(0, 0),
+                   c(1.2, 0),
+                   c(0.0, 0.8))
 ```
 
 We evaluate the points!
@@ -196,6 +196,10 @@ calcNewPoint <- function(inMid, inWorst, useCoefficient=1){
   names(newPoint) <- NULL
   return(newPoint)
 }
+
+scalePoints <- function(inPoint, useCoefficient=0.5){
+  return(inPoint * useCoefficient)
+}
 ```
 
 Reflect our current simplex.
@@ -220,5 +224,65 @@ OK, even better. Lets replace the previous best point.
 
 ```{r replaceBest}
 usePoints[[1]] <- expPoint
+```
+
+This function expects a list of points, and a function to evaluate each point. Returns a new simplex.
+
+```{r simplexLogic}
+simplexLogic <- function(inPoints, evalFunction){
+  nDim <- length(inPoints) - 1
+  
+  # order the points from best to worst
+  inEval <- sapply(inPoints, evalFunction)
+  newOrder <- order(inEval, decreasing=FALSE)
+  
+  inEval <- inEval[newOrder]
+  inPoints <- inPoints[newOrder]
+  outPoints <- inPoints
+  
+  midPoint <- calcMid(inPoints[1:nDim])
+  
+  # try reflection
+  refPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], 1)
+  refEval <- evalFunction(refPoint)
+  
+  if (refEval < inEval[2]){
+    if (inEval[2] < refEval){
+      outPoints[[3]] <- refPoint
+    } else {
+      expPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], 2)
+      expEval <- evalFunction(expPoint)
+      if (expEval < inEval[1]){
+        outPoints[[3]] <- expPoint
+      } else {
+        outPoints[[3]] <- refPoint
+      }
+    }
+  } else {
+    if (refEval < inEval[3]){
+      outPoints[[3]] <- refPoint
+    }
+    contPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], -0.5)
+    contEval <- evalFunction(contPoint)
+    
+    if (contEval < inEval[3]){
+      outPoints[[3]] <- contPoint
+    } else {
+      outPoints[2:(nDim+1)] <- lapply(inPoints[2:(nDim+1)], scalePoints)
+    }
+    
+    
+  }
+  return(outPoints)
+}
+```
+
+
+## Check that Nelder-Mead works properly
+
+```{r outSurface}
+xVals <- seq(-20, 20, 0.1)
+yVals <- seq(-20, 20, 0.1)
+zVals <- sapply(seq(1, length(xVals)), function(x){evalFunc(c(xVals[x], yVals[x]))})
 ```
 
