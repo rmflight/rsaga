@@ -145,9 +145,46 @@ Because Numerical Methods originally used SA for our types of problems by combin
 We will test it using a rather trivial example of finding roots to a binomial equation.
 
 ```{r findRoots}
-evalFunc <- function(x, y){
+evalFunc <- function(xyVals){
+  x <- xyVals[1]
+  y <- xyVals[2]
   outVal <- x^2 - 4*x + y^2 - y - x*y
   return(outVal)
 }
+```
+
+```{r initGuess}
+usePoints <- list(p1=c(0, 0),
+                   p2=c(1.2, 0),
+                   p3=c(0.0, 0.8))
+```
+
+We evaluate the points!
+
+```{r checkInit}
+evalPoints <- sapply(usePoints, evalFunc)
+```
+
+And sort them from best to worst!
+
+```{r sortPoints}
+sortEval <- order(evalPoints, decreasing=F)
+evalPoints <- evalPoints[sortEval]
+usePoints <- usePoints[sortEval]
+names(usePoints) <- c("b", "g", "w")
+```
+
+Calculate the mid-point of best two points:
+
+```{r calcMid}
+calcMid <- function(inPoints){
+  allPoints <- do.call(rbind, inPoints)
+  midPoint <- rowMeans(allPoints)
+  return(midPoint)
+}
+```
+
+```{r getMid}
+midPoint <- calcMid(usePoints[1:2])
 ```
 
