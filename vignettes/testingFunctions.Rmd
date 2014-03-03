@@ -136,3 +136,18 @@ betaValues
 bestSol
 plot(log10(bestEnergies))
 ```
+
+
+## Nelder-Mead Simplex
+
+Because Numerical Methods originally used SA for our types of problems by combining with a simplex, I want to understand the Nelder-Mead simplex downhill search.
+
+We will test it using a rather trivial example of finding roots to a binomial equation.
+
+```{r findRoots}
+evalFunc <- function(x, y){
+  outVal <- x^2 - 4*x + y^2 - y - x*y
+  return(outVal)
+}
+```
+
