@@ -332,11 +332,10 @@ while (iter < 20){
   iter <- iter + 1
 }
 
-lapply(outPoints, function(plotPoint){
-  lapply(plotPoint, function(x){
+plotPoints <- function(inPoints){
+  lapply(inPoints, function(x){
     points(x[1], x[2], col="green")
   })
-})
-
+}
 ```
 
