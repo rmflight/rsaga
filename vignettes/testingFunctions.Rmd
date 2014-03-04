@@ -195,8 +195,8 @@ names(usePoints) <- c("b", "g", "w")
 Calculate the mid-point of best two points:
 
 ```{r calcMid}
-calcMid <- function(inPoints){
-  allPoints <- do.call(rbind, inPoints)
+calcMid <- function(inPoints, nDim){
+  allPoints <- matrix(unlist(inPoints), ncol=nDim, byrow=FALSE)
   midPoint <- rowMeans(allPoints)
   return(midPoint)
 }
@@ -258,7 +258,7 @@ simplexLogic <- function(inPoints, evalFunction){
   inPoints <- inPoints[newOrder]
   outPoints <- inPoints
   
-  midPoint <- calcMid(inPoints[1:nDim])
+  midPoint <- calcMid(inPoints[1:nDim], nDim)
   
   # try reflection
   refPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], 1)
@@ -310,7 +310,7 @@ plotY <- queryVals
 plotZ <- matrix(zVals, nrow=nVal, ncol=nVal, byrow=FALSE)
 
 contour(plotX, plotY, plotZ, nlevels=80)
-points(3, 2, col="red")
+#points(3, 2, col="red")
 rownames(plotZ) <- plotX
 colnames(plotZ) <- plotY
 plotZ["3", "2"]
@@ -332,10 +332,24 @@ while (iter < 20){
   iter <- iter + 1
 }
 
-plotPoints <- function(inPoints){
+plotPoints <- function(inPoints, useCol="green"){
   lapply(inPoints, function(x){
-    points(x[1], x[2], col="green")
+    points(x[1], x[2], col=useCol)
   })
 }
 ```
+
+```{r plotSimplex}
+plotPoints(outPoints[[1]])
+plotPoints(outPoints[[2]])
+plotPoints(outPoints[[3]], "orange")
+plotPoints(outPoints[[4]], "red") # this didn't do the expected reflection
+plotPoints(outPoints[[5]], "blue")
+plotPoints(outPoints[[6]], "green")
+plotPoints(outPoints[[7]], "orange")
+plotPoints(outPoints[[8]], "blue")
+plotPoints(outPoints[[9]], "black")
+plotPoints(outPoints[[10]], "red"
+```
+
 
