@@ -156,3 +156,187 @@ initGuess[2] <- runif(1)
 optSA <- optim(initGuess, energyFunc, method="SANN", control=list(temp=300, maxit=1e8))
 ```
 
+## Nelder-Mead Simplex
+
+Because Numerical Methods originally used SA for our types of problems by combining with a simplex, I want to understand the Nelder-Mead simplex downhill search.
+
+We will test it using a rather trivial example of finding roots to a binomial equation.
+
+```{r findRoots}
+evalFunc <- function(xyVals){
+  x <- xyVals[1]
+  y <- xyVals[2]
+  outVal <- x^2 - 4*x + y^2 - y - x*y
+  return(outVal)
+}
+```
+
+```{r initGuess}
+usePoints <- list(c(0, 0),
+                   c(1.2, 0),
+                   c(0.0, 0.8))
+```
+
+We evaluate the points!
+
+```{r checkInit}
+evalPoints <- sapply(usePoints, evalFunc)
+```
+
+And sort them from best to worst!
+
+```{r sortPoints}
+sortEval <- order(evalPoints, decreasing=F)
+evalPoints <- evalPoints[sortEval]
+usePoints <- usePoints[sortEval]
+names(usePoints) <- c("b", "g", "w")
+```
+
+Calculate the mid-point of best two points:
+
+```{r calcMid}
+calcMid <- function(inPoints){
+  allPoints <- do.call(rbind, inPoints)
+  midPoint <- rowMeans(allPoints)
+  return(midPoint)
+}
+```
+
+```{r getMid}
+midPoint <- calcMid(usePoints[1:2])
+```
+
+Generate a new reflected, expanded, or contracted point (which is dependent on the coefficient passed in).
+
+```{r calcNew}
+calcNewPoint <- function(inMid, inWorst, useCoefficient=1){
+  newPoint <- inMid + useCoefficient * (inMid - inWorst)
+  names(newPoint) <- NULL
+  return(newPoint)
+}
+
+scalePoints <- function(inPoint, useCoefficient=0.5){
+  return(inPoint * useCoefficient)
+}
+```
+
+Reflect our current simplex.
+
+```{r reflectSimplex}
+refPoint <- calcNewPoint(midPoint, usePoints[[3]])
+evalRef <- evalFunc(refPoint)
+evalRef
+evalPoints[1]
+```
+
+Our new point has a better energy than the best point. We should try expanding it!
+
+```{r expandSimplex}
+expPoint <- calcNewPoint(midPoint, usePoints[[3]], 2)
+evalExp <- evalFunc(expPoint)
+evalExp
+evalPoints[1]
+```
+
+OK, even better. Lets replace the previous best point.
+
+```{r replaceBest}
+usePoints[[1]] <- expPoint
+```
+
+This function expects a list of points, and a function to evaluate each point. Returns a new simplex.
+
+```{r simplexLogic}
+simplexLogic <- function(inPoints, evalFunction){
+  nDim <- length(inPoints) - 1
+  
+  # order the points from best to worst
+  inEval <- sapply(inPoints, evalFunction)
+  newOrder <- order(inEval, decreasing=FALSE)
+  
+  inEval <- inEval[newOrder]
+  inPoints <- inPoints[newOrder]
+  outPoints <- inPoints
+  
+  midPoint <- calcMid(inPoints[1:nDim])
+  
+  # try reflection
+  refPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], 1)
+  refEval <- evalFunction(refPoint)
+  
+  if (refEval < inEval[2]){
+    if (inEval[2] < refEval){
+      outPoints[[3]] <- refPoint
+    } else {
+      expPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], 2)
+      expEval <- evalFunction(expPoint)
+      if (expEval < inEval[1]){
+        outPoints[[3]] <- expPoint
+      } else {
+        outPoints[[3]] <- refPoint
+      }
+    }
+  } else {
+    if (refEval < inEval[3]){
+      outPoints[[3]] <- refPoint
+    }
+    contPoint <- calcNewPoint(midPoint, inPoints[[nDim+1]], -0.5)
+    contEval <- evalFunction(contPoint)
+    
+    if (contEval < inEval[3]){
+      outPoints[[3]] <- contPoint
+    } else {
+      outPoints[2:(nDim+1)] <- lapply(inPoints[2:(nDim+1)], scalePoints)
+    }
+    
+    
+  }
+  return(outPoints)
+}
+```
+
+
+## Check that Nelder-Mead works properly
+
+```{r outSurface}
+queryVals <- seq(-5, 5, 0.1)
+nVal <- length(queryVals)
+xVals <- rep(queryVals, nVal)
+yVals <- rep(queryVals, each=nVal)
+zVals <- sapply(seq(1, length(xVals)), function(x){evalFunc(c(xVals[x], yVals[x]))})
+
+plotX <- queryVals
+plotY <- queryVals
+plotZ <- matrix(zVals, nrow=nVal, ncol=nVal, byrow=FALSE)
+
+contour(plotX, plotY, plotZ, nlevels=80)
+points(3, 2, col="red")
+rownames(plotZ) <- plotX
+colnames(plotZ) <- plotY
+plotZ["3", "2"]
+```
+
+```{r runSimplex}
+initPoint <- usePoints
+lapply(usePoints, function(x){
+  points(x[1], x[2], col="green")
+})
+
+iter <- 1
+
+outPoints <- list(20)
+
+while (iter < 20){
+  outPoints[[iter]] <- initPoint
+  initPoint <- simplexLogic(initPoint, evalFunc)
+  iter <- iter + 1
+}
+
+lapply(outPoints, function(plotPoint){
+  lapply(plotPoint, function(x){
+    points(x[1], x[2], col="green")
+  })
+})
+
+```
+
