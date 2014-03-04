@@ -109,7 +109,7 @@ plot(x,y)
 plot(x, y2)
 ```
 
-```{r try50}
+```{r try50, eval=FALSE}
 library(snowfall)
 sfInit(parallel=TRUE, cpus=4)
 
@@ -136,3 +136,23 @@ betaValues
 bestSol
 plot(log10(bestEnergies))
 ```
+
+## Other tests
+
+So the above tests are too biased. We start too close to the real answer. So lets try out the built in optimization methods in `R` and see if they actually work, namely the `SANN` method and `Nelder-Mead`.
+
+```{r neldermead}
+library(stats)
+initGuess <- runif(8, 0, 200)
+initGuess[2] <- runif(1)
+
+optNM <- optim(initGuess, energyFunc, method="Nelder-Mead", control=list(trace=1, maxit=1e6))
+```
+
+```{r}
+library(stats)
+initGuess <- runif(8, 0, 200)
+initGuess[2] <- runif(1)
+optSA <- optim(initGuess, energyFunc, method="SANN", control=list(temp=300, maxit=1e8))
+```
+
