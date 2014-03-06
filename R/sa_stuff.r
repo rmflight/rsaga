@@ -8,10 +8,13 @@
 #' @param temperatureStep how many steps to go from \code{initialTemperature} to 0 (default is NA), overrides \code{deltaTemperature}
 #' @param alpha how much the current temperature affects the neighbor solution
 #' @param sameTolerance how similar two iterations have to be to stop
+#' @param nTry how many overall iterations to do
+#' @param tryGood how many good solutions to generate before reducing temperature (default is 10)
+#' @param tryBad how many bad solutions to make before reducing temperature (default is 100)
 #' 
 #' @export
 #' @return list of results
-sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperature=300, deltaTemperature=1, temperatureStep=NA, alpha=1, sameTolerance=0.00001, nTry=10000){
+sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperature=300, deltaTemperature=1, temperatureStep=NA, alpha=1, sameTolerance=0.00001, nTry=10000, tryGood=10, tryBad=100){
   
   if (!is.na(temperatureStep)){
     deltaTemperature <- (initialTemperature - 0) / temperatureStep
@@ -32,27 +35,38 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
   allEnergy <- double(nIter)
   
   while ((currTemp > 0) && (currTol > sameTolerance) && (iTry < nTry)){
-    newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
-    newEnergy <- evalFunction(newSolution)
+    temperatureTry <- 1
+    iGood <- 0
+    iBad <- 0
     
-    deltaEnergy <- newEnergy - currEnergy
-    
-    if (deltaEnergy < 0){
-      currTol <- sum((currSolution - newSolution)^2)
-      #automatically accept if energy is better
-      currSolution <- newSolution
-      currEnergy <- newEnergy
+    while ((iGood < tryGood) && (iBad < tryBad)){
+      newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
+      newEnergy <- evalFunction(newSolution)
       
-    } else {
-      energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
-      #browser(expr=TRUE)
-      if (runif(1) < energyP){
+      deltaEnergy <- newEnergy - currEnergy
+      
+      if (deltaEnergy < 0){
+        iGood <- iGood + 1
         currTol <- sum((currSolution - newSolution)^2)
+        #automatically accept if energy is better
         currSolution <- newSolution
         currEnergy <- newEnergy
         
+      } else {
+        energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
+        #browser(expr=TRUE)
+        if (runif(1) < energyP){
+          currTol <- sum((currSolution - newSolution)^2)
+          currSolution <- newSolution
+          currEnergy <- newEnergy
+          
+        } else {
+          iBad <- iBad + 1
+        }
       }
     }
+    
+    
     
     if (currEnergy < bestEnergy){
       bestSolution <- currSolution
