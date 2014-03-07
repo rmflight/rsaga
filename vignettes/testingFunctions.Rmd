@@ -73,16 +73,14 @@ energyFunc <- function(newBeta){
 And our values for each value of beta will be drawn uniformly from a distribution with a range of 0 to 200. The neighbor values will be based on the current values, but the standard deviation will be adjusted based on the current temperature and alpha.
 
 ```{r initPop}
-neighborFunction <- function(currentPopulation, useSD, currentTemperature, alpha){
+neighborFunction <- function(currentPopulation, alpha){
   # an alpha of 0 means temperature has no effect
   if (alpha == 0){
     scaleVariance <- 1
-    tmpSD <- useSD
   } else {
     scaleVariance <- currentTemperature * alpha / length(currentPopulation)
-    tmpSD <- useSD * scaleVariance
   }
-  newPopulation <- rnorm(length(currentPopulation), mean=currentPopulation, sd=tmpSD)
+  newPopulation <- log(rlnorm(length(currentPopulation), mean=currentPopulation, sd=1 * scaleVariance)
   newPopulation[newPopulation < 0] <- 0
   return(newPopulation)
 }
