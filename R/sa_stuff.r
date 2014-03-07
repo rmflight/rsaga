@@ -39,6 +39,9 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
     iGood <- 0
     iBad <- 0
     
+    # keep "good" new solutions
+    tmpNewSolution <- list()
+    tmpNewEnergy <- double()
     while ((iGood < tryGood) && (iBad < tryBad)){
       newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
       newEnergy <- evalFunction(newSolution)
@@ -47,25 +50,33 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
       
       if (deltaEnergy < 0){
         iGood <- iGood + 1
-        currTol <- sum((currSolution - newSolution)^2)
-        #automatically accept if energy is better
-        currSolution <- newSolution
-        currEnergy <- newEnergy
+        
+        tmpNewSolution <- c(tmpNewSolution, newSolution)
+        tmpNewEnergy <- c(tmpNewEnergy, newEnergy)
         
       } else {
         energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
         #browser(expr=TRUE)
         if (runif(1) < energyP){
+          tmpNewSolution <- c(tmpNewSolution, newSolution)
+          tmpNewEnergy <- c(tmpNewEnergy, newEnergy)
+          
           currTol <- sum((currSolution - newSolution)^2)
           currSolution <- newSolution
           currEnergy <- newEnergy
           iGood <- iGood + 1
-        } else {
           iBad <- iBad + 1
         }
       }
     }
     
+    if (length(tmpNewEnergy) != 0){
+      bestNew <- which.min(tmpNewEnergy)
+      
+      currTol <- sum((currSolution - tmpNewSolution[[bestNew]])^2)
+      currSolution <- tmpNewSolution[[bestNew]]
+      currEnergy <- tmpNewEnergy[bestNew]
+    }
     
     
     if (currEnergy < bestEnergy){
