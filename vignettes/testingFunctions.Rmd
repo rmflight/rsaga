@@ -80,12 +80,28 @@ neighborFunction <- function(currentPopulation, alpha){
   } else {
     scaleVariance <- currentTemperature * alpha / length(currentPopulation)
   }
-  newPopulation <- log(rlnorm(length(currentPopulation), mean=currentPopulation, sd=1 * scaleVariance)
+  newPopulation <- log(rlnorm(length(currentPopulation), mean=currentPopulation, sd=1 * scaleVariance))
   newPopulation[newPopulation < 0] <- 0
   return(newPopulation)
 }
 ```
 
+## Initial Temperature
+
+Lets generate a bunch of samples to see what temperature we need to reasonably be able to accept higher energy solutions while we search the space. 
+
+```{r initTemp}
+generateSolution <- function(){
+  newSolution <- runif(8, 0, 200)
+  return(newSolution)
+}
+
+randomSolutions <- replicate(50, generateSolution())
+randomEnergy <- apply(randomSolutions, 2, energyFunc)
+abs(diff(randomEnergy))
+```
+
+Our largest values are on the order of 1e7, so our initial temperature should probably be on the order of 1e8.
 
 Lets write a simple simulated annealing algorithm.
 
