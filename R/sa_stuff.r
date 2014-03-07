@@ -59,7 +59,7 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
           currTol <- sum((currSolution - newSolution)^2)
           currSolution <- newSolution
           currEnergy <- newEnergy
-          
+          iGood <- iGood + 1
         } else {
           iBad <- iBad + 1
         }
