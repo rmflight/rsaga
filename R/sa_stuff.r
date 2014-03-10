@@ -70,7 +70,7 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
     hasEntry <- !(sapply(tmpNewSolution, is.null))
     
     
-    if (hasEntry != 0){
+    if (sum(hasEntry) != 0){
       tmpNewSolution <- tmpNewSolution[hasEntry]
       tmpNewEnergy <- tmpNewEnergy[hasEntry]
       bestNew <- which.min(tmpNewEnergy)
