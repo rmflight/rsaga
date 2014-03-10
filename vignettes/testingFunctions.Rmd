@@ -104,7 +104,7 @@ initialSolution[2] <- runif(1, 0, 1)
 
 initTemp <- 1e6
 
-outSA <- sa(initialSolution, energyFunc, neighborFunction, initTemp, deltaTemperature=100, alpha=0.2, nTry=1e5)
+outSA <- sa(initialSolution, energyFunc, neighborFunction, initTemp, deltaTemperature=500, alpha=0.2, nTry=1e5)
 ```
 
 ```{r try50, eval=FALSE}
