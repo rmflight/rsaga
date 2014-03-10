@@ -73,15 +73,10 @@ energyFunc <- function(newBeta){
 And our values for each value of beta will be drawn uniformly from a distribution with a range of 0 to 200. The neighbor values will be based on the current values, but the standard deviation will be adjusted based on the current temperature and alpha.
 
 ```{r initPop}
-neighborFunction <- function(currentPopulation, alpha){
+neighborFunction <- function(currentPopulation = currSolution, currentTemperature = currTemp, alpha = alpha){
   # an alpha of 0 means temperature has no effect
-  if (alpha == 0){
-    scaleVariance <- 1
-  } else {
-    scaleVariance <- currentTemperature * alpha / length(currentPopulation)
-  }
-  newPopulation <- log(rlnorm(length(currentPopulation), mean=currentPopulation, sd=1 * scaleVariance))
-  newPopulation[newPopulation < 0] <- 0
+  newPopulation <- runif(8, 0, 200)
+  newPopulation[2] <- runif(1, 0, 1)
   return(newPopulation)
 }
 ```
@@ -103,24 +98,13 @@ abs(diff(randomEnergy))
 
 Our largest values are on the order of 1e7, so our initial temperature should probably be on the order of 1e8.
 
-Lets write a simple simulated annealing algorithm.
+```{r trySA}
+initialSolution <- runif(8, 0, 200)
+initialSolution[2] <- runif(1, 0, 1)
 
+initTemp <- 1e6
 
-```{r tryitOut}
-library(functional)
-initPop <- rnorm(8, mean=betaValues, sd=0.2*betaValues)
-initPop[(initPop < 0)] <- 0
-useSD <- 0.2 * betaValues
-
-tmpNeighbor <- Curry(neighborFunction, useSD=useSD)
-
-outSA <- sa(initPop, energyFunc, tmpNeighbor, 300, 0.005, alpha=0.01, nTry=Inf)
-plot(outSA$allEnergy)
-plot(log10(outSA$allEnergy))
-
-y2 <- fx(x, outSA$lastSolution)
-plot(x,y)
-plot(x, y2)
+outSA <- sa(initialSolution, energyFunc, neighborFunction, initTemp, deltaTemperature=100, alpha=0.2, nTry=1e5)
 ```
 
 ```{r try50, eval=FALSE}
