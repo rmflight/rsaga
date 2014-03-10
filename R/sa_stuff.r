@@ -31,8 +31,8 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
   iTry <- 1
   
   nIter <- (initialTemperature / deltaTemperature) + 2
-  allSolutions <- list(nIter)
-  allEnergy <- double(nIter)
+  allSolutions <- vector("list", nIter)
+  allEnergy <- vector("double", nIter)
   
   while ((currTemp > 0) && (currTol > sameTolerance) && (iTry < nTry)){
     temperatureTry <- 1
@@ -40,8 +40,8 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
     iBad <- 0
     
     # keep "good" new solutions
-    tmpNewSolution <- list()
-    tmpNewEnergy <- double()
+    tmpNewSolution <- list(10)
+    tmpNewEnergy <- double(10)
     while ((iGood < tryGood) && (iBad < tryBad)){
       newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
       newEnergy <- evalFunction(newSolution)
@@ -51,26 +51,29 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
       if (deltaEnergy < 0){
         iGood <- iGood + 1
         
-        tmpNewSolution <- c(tmpNewSolution, newSolution)
-        tmpNewEnergy <- c(tmpNewEnergy, newEnergy)
+        tmpNewSolution[[iGood]] <- newSolution
+        tmpNewEnergy[[iGood]] <- newEnergy
         
       } else {
         energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
         #browser(expr=TRUE)
         if (runif(1) < energyP){
-          tmpNewSolution <- c(tmpNewSolution, newSolution)
-          tmpNewEnergy <- c(tmpNewEnergy, newEnergy)
+          tmpNewSolution[[iGood]] <- newSolution
+          tmpNewEnergy[[iGood]] <- newEnergy
           
-          currTol <- sum((currSolution - newSolution)^2)
-          currSolution <- newSolution
-          currEnergy <- newEnergy
           iGood <- iGood + 1
+        } else {
           iBad <- iBad + 1
         }
       }
     }
     
-    if (length(tmpNewEnergy) != 0){
+    hasEntry <- !(sapply(tmpNewSolution, is.null))
+    
+    
+    if (hasEntry != 0){
+      tmpNewSolution <- tmpNewSolution[hasEntry]
+      tmpNewEnergy <- tmpNewEnergy[hasEntry]
       bestNew <- which.min(tmpNewEnergy)
       
       currTol <- sum((currSolution - tmpNewSolution[[bestNew]])^2)
