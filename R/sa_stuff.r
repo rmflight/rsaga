@@ -58,10 +58,9 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
         energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
         #browser(expr=TRUE)
         if (runif(1) < energyP){
+          iGood <- iGood + 1
           tmpNewSolution[[iGood]] <- newSolution
           tmpNewEnergy[[iGood]] <- newEnergy
-          
-          iGood <- iGood + 1
         } else {
           iBad <- iBad + 1
         }
