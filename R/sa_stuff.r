@@ -42,7 +42,7 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
     # keep "good" new solutions
     tmpNewSolution <- list(10)
     tmpNewEnergy <- double(10)
-    while ((iGood <= tryGood) && (iBad <= tryBad)){
+    while ((iGood < tryGood) && (iBad < tryBad)){
       newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
       newEnergy <- evalFunction(newSolution)
       
@@ -67,10 +67,10 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
       }
     }
     
-    hasEntry <- !(sapply(tmpNewSolution, is.null))
+    hasEntry <- which(!(sapply(tmpNewSolution, is.null)))
     
     
-    if (sum(hasEntry) != 0){
+    if (length(hasEntry) != 0){
       tmpNewSolution <- tmpNewSolution[hasEntry]
       tmpNewEnergy <- tmpNewEnergy[hasEntry]
       bestNew <- which.min(tmpNewEnergy)
