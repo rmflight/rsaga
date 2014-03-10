@@ -42,7 +42,7 @@ sa <- function(initialSolution, evalFunction, neighborFunction, initialTemperatu
     # keep "good" new solutions
     tmpNewSolution <- list(10)
     tmpNewEnergy <- double(10)
-    while ((iGood < tryGood) && (iBad < tryBad)){
+    while ((iGood <= tryGood) && (iBad <= tryBad)){
       newSolution <- neighborFunction(currentPopulation=currSolution, currentTemperature=currTemp, alpha=alpha)
       newEnergy <- evalFunction(newSolution)
       
