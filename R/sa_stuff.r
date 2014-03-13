@@ -21,7 +21,7 @@ sa <- function(initialSolution, energyFunction, neighborFunction, initialTempera
   }
   
   currSolution <- initialSolution
-  currEnergy <- evalFunction(initialSolution)
+  currEnergy <- energyFunction(initialSolution)
   
   bestSolution <- currSolution
   bestEnergy <- currEnergy
@@ -48,22 +48,16 @@ sa <- function(initialSolution, energyFunction, neighborFunction, initialTempera
       
       deltaEnergy <- newEnergy - currEnergy
       
-      if (deltaEnergy < 0){
+      # acceptance criteria
+      if ( (deltaEnergy < 0) || (runif(1) < exp((-1 * deltaEnergy) / currTemp)) ){
         iGood <- iGood + 1
         
         tmpNewSolution[[iGood]] <- newSolution
         tmpNewEnergy[[iGood]] <- newEnergy
         
       } else {
-        energyP <- exp((-1 * deltaEnergy) / currTemp) # calculate energy difference
-        #browser(expr=TRUE)
-        if (runif(1) < energyP){
-          iGood <- iGood + 1
-          tmpNewSolution[[iGood]] <- newSolution
-          tmpNewEnergy[[iGood]] <- newEnergy
-        } else {
           iBad <- iBad + 1
-        }
+        
       }
     }
     
