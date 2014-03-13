@@ -1,4 +1,7 @@
-
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{saga testing}
+-->
 
 # SAGA
 
