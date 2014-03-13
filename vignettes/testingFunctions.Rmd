@@ -76,10 +76,13 @@ energyFunc <- function(newBeta){
 And our values for each value of beta will be drawn uniformly from a distribution with a range of 0 to 200. The neighbor values will be based on the current values, but the standard deviation will be adjusted based on the current temperature and alpha.
 
 ```{r initPop}
-neighborFunction <- function(currentPopulation = currSolution, currentTemperature = currTemp, alpha = alpha){
+neighborFunction <- function(currentPopulation, currentTemperature, alpha){
+  useSD <- alpha * currentPopulation
+  useSD[(useSD < 0.05)] <- 0.05
+  newPopulation <- rnorm(length(currentPopulation), currentPopulation, useSD)
+  newNegative <- newPopulation <= 0
+  newPopulation[newNegative] <- currentPopulation[newNegative]
   # an alpha of 0 means temperature has no effect
-  newPopulation <- runif(8, 0, 200)
-  newPopulation[2] <- runif(1, 0, 1)
   return(newPopulation)
 }
 ```
@@ -107,7 +110,8 @@ initialSolution[2] <- runif(1, 0, 1)
 
 initTemp <- 1e6
 
-outSA <- sa(initialSolution, energyFunc, neighborFunction, initTemp, deltaTemperature=500, alpha=0.2, nTry=1e5)
+
+outSA <- sa(initialSolution, energyFunc, neighborFunction, initTemp, deltaTemperature=10, alpha=1, nTry=1e5)
 ```
 
 ```{r try50, eval=FALSE}
